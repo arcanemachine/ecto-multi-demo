@@ -25,6 +25,7 @@ defmodule EctoMultiDemoWeb.Router do
     pipe_through(:api)
 
     resources "/persons", PersonController, except: [:new, :edit]
+    resources "/dogs", DogController, except: [:new, :edit]
   end
 
   # Enables LiveDashboard only for development
