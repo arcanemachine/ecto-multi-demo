@@ -6,6 +6,7 @@ defmodule EctoMultiDemo.Persons do
   import Ecto.Query, warn: false
   alias EctoMultiDemo.Repo
 
+  alias EctoMultiDemo.Dogs
   alias EctoMultiDemo.Persons.Person
 
   @doc """
@@ -53,6 +54,33 @@ defmodule EctoMultiDemo.Persons do
     %Person{}
     |> Person.changeset(attrs)
     |> Repo.insert()
+  end
+
+  @doc """
+  Creates a person with an associated Cat and Dog in a single database transaction.
+
+  Uses `Repo.transaction/0` to ensure that all objects are created successfully.
+
+  ## Examples
+
+      iex> create_person_and_dog_as_transaction()
+      {:ok, %Person{}}
+
+  """
+  def create_person_and_dog_as_transaction(attrs \\ %{}) do
+    Repo.transaction(fn ->
+      with {:ok, person} <- %Person{} |> Person.changeset(attrs) |> Repo.insert(),
+           # put person_id into attrs for use when creating associated records
+           attrs = Map.put(attrs, "person_id", person.id),
+
+           # create associated records
+           {:ok, _dog_1} <- Dogs.create_dog(Map.put(attrs, "info", "Dog #1")),
+           {:ok, _dog_2} <- Dogs.create_dog(Map.put(attrs, "info", "Dog #2")) do
+        person
+      else
+        {:error, e} -> Repo.rollback(e)
+      end
+    end)
   end
 
   @doc """
