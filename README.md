@@ -1,4 +1,13 @@
-# EctoMultiDemo
+# ecto-multi-demo
+
+A playground for me to experiment with Ecto multi-table write strategies
+
+Uses:
+
+- Writes to multiple tables with `Ecto.Multi` (preferred method)
+- Writes to multiple tables with `Repo.transaction`
+
+---
 
 To start your Phoenix server:
 

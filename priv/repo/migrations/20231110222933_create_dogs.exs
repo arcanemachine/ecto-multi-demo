@@ -3,8 +3,11 @@ defmodule EctoMultiDemo.Repo.Migrations.CreateDogs do
 
   def change do
     create table(:dogs) do
-      add :person_id, references(:persons, on_delete: :nothing)
-      add :info, :string
+      # associations
+      add :person_id, references(:persons, on_delete: :delete_all), null: false
+
+      # fields
+      add :name, :string, null: false
 
       timestamps()
     end

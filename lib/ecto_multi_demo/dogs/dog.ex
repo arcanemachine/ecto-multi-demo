@@ -3,16 +3,19 @@ defmodule EctoMultiDemo.Dogs.Dog do
   import Ecto.Changeset
 
   schema "dogs" do
-    field :person_id, :id
-    field :info, :string
+    # associations
+    belongs_to :person, EctoMultiDemo.Persons.Person
+
+    # fields
+    field :name, :string
 
     timestamps()
   end
 
   @doc false
-  def changeset(dog, attrs) do
+  def changeset(dog \\ %__MODULE__{}, attrs) do
     dog
-    |> cast(attrs, [:info])
-    |> validate_required([:info])
+    |> cast(attrs, [:person_id, :name])
+    |> validate_required([:person_id, :name])
   end
 end

@@ -3,10 +3,8 @@ defmodule EctoMultiDemo.Persons do
   The Persons context.
   """
 
-  import Ecto.Query, warn: false
-  alias EctoMultiDemo.Repo
-
-  alias EctoMultiDemo.Dogs
+  alias Ecto.Multi
+  alias EctoMultiDemo.{Dogs, Repo}
   alias EctoMultiDemo.Persons.Person
 
   @doc """
@@ -57,9 +55,9 @@ defmodule EctoMultiDemo.Persons do
   end
 
   @doc """
-  Creates a person with an associated Cat and Dog in a single database transaction.
+  Creates a person with an associated Dog in a single database transaction.
 
-  Uses `Repo.transaction/0` to ensure that all objects are created successfully.
+  Uses `Repo.transaction/0` to ensure that all objects are created in a single transaction.
 
   ## Examples
 
@@ -69,18 +67,41 @@ defmodule EctoMultiDemo.Persons do
   """
   def create_person_and_dog_as_transaction(attrs \\ %{}) do
     Repo.transaction(fn ->
-      with {:ok, person} <- %Person{} |> Person.changeset(attrs) |> Repo.insert(),
+      with {:ok, person} <- create_person(attrs),
            # put person_id into attrs for use when creating associated records
            attrs = Map.put(attrs, "person_id", person.id),
 
            # create associated records
-           {:ok, _dog_1} <- Dogs.create_dog(Map.put(attrs, "info", "Dog #1")),
-           {:ok, _dog_2} <- Dogs.create_dog(Map.put(attrs, "info", "Dog #2")) do
+           {:ok, _dog_1} <- Dogs.create_dog(Map.put(attrs, "info", person.name <> " Dog #1")),
+           {:ok, _dog_2} <- Dogs.create_dog(Map.put(attrs, "info", person.name <> " Dog #2")) do
         person
       else
         {:error, e} -> Repo.rollback(e)
       end
     end)
+  end
+
+  @doc """
+  Creates a person with an associated Dog in a single database transaction.
+
+  Uses `Ecto.Multi` to ensure that all objects are created in a single transaction.
+
+  ## Examples
+
+      iex> create_person_and_dog_as_multi()
+      {:ok, %Person{}}
+
+  """
+  def create_person_and_dog_as_multi(attrs \\ %{}) do
+    Multi.new()
+    |> Multi.insert(:person, change_person(%Person{}, attrs))
+    |> Multi.merge(fn %{person: person} ->
+      # create associated records
+      Multi.new()
+      |> Multi.insert(:dog_1, Ecto.build_assoc(person, :dogs, name: person.name <> " Dog #1"))
+      |> Multi.insert(:dog_2, Ecto.build_assoc(person, :dogs, name: person.name <> " Dog #2"))
+    end)
+    |> Repo.transaction()
   end
 
   @doc """

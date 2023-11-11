@@ -3,7 +3,7 @@ defmodule EctoMultiDemo.Repo.Migrations.CreatePersons do
 
   def change do
     create table(:persons) do
-      add :name, :string
+      add :name, :string, null: false
 
       timestamps()
     end
