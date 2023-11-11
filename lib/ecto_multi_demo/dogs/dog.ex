@@ -3,8 +3,8 @@ defmodule EctoMultiDemo.Dogs.Dog do
   import Ecto.Changeset
 
   schema "dogs" do
-    field :name, :string
     field :person_id, :id
+    field :info, :string
 
     timestamps()
   end
@@ -12,7 +12,7 @@ defmodule EctoMultiDemo.Dogs.Dog do
   @doc false
   def changeset(dog, attrs) do
     dog
-    |> cast(attrs, [:name])
-    |> validate_required([:name])
+    |> cast(attrs, [:info])
+    |> validate_required([:info])
   end
 end
