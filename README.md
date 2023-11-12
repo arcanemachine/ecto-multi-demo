@@ -1,6 +1,9 @@
 # ecto-multi-demo
 
-A playground for me to experiment with Ecto multi-table write strategies
+A playground for me to experiment with Ecto multi-table write strategies.
+
+Note: elixirschool.com is a fantastic resource using Ecto to create and query database objects:
+  - https://elixirschool.com/en/lessons/ecto/
 
 Uses:
 
