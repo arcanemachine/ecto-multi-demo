@@ -3,9 +3,18 @@ defmodule EctoMultiDemo.Persons do
   The Persons context.
   """
 
+  import Ecto.Query
+
   alias Ecto.Multi
   alias EctoMultiDemo.{Dogs, Repo}
   alias EctoMultiDemo.Persons.Person
+
+  def get_with_all_associations(queryable \\ %Person{}, person_id) do
+    Repo.get(queryable, person_id)
+  end
+
+  # composable queries
+  def with_all_associations(queryable), do: queryable |> preload([:dogs])
 
   @doc """
   Returns the list of persons.
