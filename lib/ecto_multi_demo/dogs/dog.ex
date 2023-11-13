@@ -15,7 +15,7 @@ defmodule EctoMultiDemo.Dogs.Dog do
   @doc false
   def changeset(dog \\ %__MODULE__{}, attrs) do
     dog
-    |> cast(attrs, [:person_id, :name])
-    |> validate_required([:person_id, :name])
+    |> cast(attrs, [:name])
+    |> validate_required([:name])
   end
 end
