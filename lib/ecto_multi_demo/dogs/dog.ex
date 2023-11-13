@@ -18,4 +18,10 @@ defmodule EctoMultiDemo.Dogs.Dog do
     |> cast(attrs, [:name])
     |> validate_required([:name])
   end
+
+  def create_changeset(dog \\ %__MODULE__{}, attrs) do
+    dog
+    |> changeset(attrs)
+    |> cast_assoc(:person)
+  end
 end

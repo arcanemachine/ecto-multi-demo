@@ -6,14 +6,33 @@ defmodule EctoMultiDemo.Persons do
   import Ecto.Query
 
   alias Ecto.{Changeset, Multi}
-  alias EctoMultiDemo.{Dogs, Repo}
+  alias EctoMultiDemo.Repo
   alias EctoMultiDemo.Persons.Person
 
+  @hardcoded_trusted_attrs %{
+    name: "Alice",
+    dogs: [
+      %{name: "Annie"},
+      %{name: "Betty"}
+    ]
+  }
+
+  @hardcoded_untrusted_attrs %{
+    "name" => "Alice",
+    "dogs" => [
+      %{"name" => "Annie"},
+      %{"name" => "Betty"}
+    ]
+  }
+
+  def get_hardcoded_trusted_attrs(), do: @hardcoded_trusted_attrs
+  def get_hardcoded_untrusted_attrs(), do: @hardcoded_untrusted_attrs
+
+  # composable queries
   def get_person_with_all_associations(person_id) do
     Repo.get(Person |> person_with_all_associations, person_id)
   end
 
-  # composable queries
   def person_with_all_associations(queryable), do: queryable |> preload([:dogs])
 
   @doc """
@@ -60,6 +79,7 @@ defmodule EctoMultiDemo.Persons do
   def create_person(attrs \\ %{}) do
     %Person{}
     |> Person.changeset(attrs)
+    |> Changeset.cast_assoc(:dogs)
     |> Repo.insert()
   end
 
@@ -72,49 +92,21 @@ defmodule EctoMultiDemo.Persons do
       {:ok, %Person{}}
 
   """
-  def create_person_and_dogs(attrs \\ nil) do
-    # use some defaults for attrs if none are passed in
-    attrs =
-      attrs ||
-        %{
-          "name" => "Alice",
-          "dogs" => [
-            %{"name" => "Annie"},
-            %{"name" => "Betty"}
-          ]
-        }
-
+  def create_person_and_dogs(attrs \\ @hardcoded_untrusted_attrs) do
     %Person{}
     |> change_person(attrs)
     |> Changeset.cast_assoc(:dogs)
     |> Repo.insert()
   end
 
-  @doc """
-  Creates a person with an associated Dog in a single database transaction.
+  def create_person_and_dogs_with_untrusted_data(attrs \\ @hardcoded_untrusted_attrs),
+    do: create_person_and_dogs(attrs)
 
-  Uses `Repo.transaction/0` to ensure that all objects are created in a single transaction.
-
-  ## Examples
-
-      iex> create_person_and_dogs_as_transaction()
-      {:ok, %Person{}}
-
-  """
-  def create_person_and_dogs_as_transaction(attrs \\ %{}) do
-    Repo.transaction(fn ->
-      with {:ok, person} <- create_person(attrs),
-           # put person_id into attrs for use when creating associated records
-           attrs = Map.put(attrs, "person_id", person.id),
-
-           # create associated records
-           {:ok, _dog_1} <- Dogs.create_dog(Map.put(attrs, "info", person.name <> " Dog #1")),
-           {:ok, _dog_2} <- Dogs.create_dog(Map.put(attrs, "info", person.name <> " Dog #2")) do
-        person
-      else
-        {:error, e} -> Repo.rollback(e)
-      end
-    end)
+  def create_person_and_dogs_with_trusted_data(attrs \\ @hardcoded_trusted_attrs) do
+    %Person{}
+    |> change_person(attrs)
+    |> Changeset.put_assoc(:dogs, attrs[:dogs] || [])
+    |> Repo.insert()
   end
 
   @doc """
@@ -128,7 +120,7 @@ defmodule EctoMultiDemo.Persons do
       {:ok, %Person{}}
 
   """
-  def create_person_and_dogs_as_multi(attrs \\ %{}) do
+  def create_person_and_dogs_as_multi(attrs \\ @hardcoded_untrusted_attrs) do
     Multi.new()
     |> Multi.insert(:person, change_person(%Person{}, attrs))
     |> Multi.merge(fn %{person: person} ->
