@@ -5,16 +5,16 @@ defmodule EctoMultiDemo.Persons do
 
   import Ecto.Query
 
-  alias Ecto.Multi
+  alias Ecto.{Changeset, Multi}
   alias EctoMultiDemo.{Dogs, Repo}
   alias EctoMultiDemo.Persons.Person
 
-  def get_with_all_associations(queryable \\ %Person{}, person_id) do
-    Repo.get(queryable, person_id)
+  def get_person_with_all_associations(person_id) do
+    Repo.get(Person |> person_with_all_associations, person_id)
   end
 
   # composable queries
-  def with_all_associations(queryable), do: queryable |> preload([:dogs])
+  def person_with_all_associations(queryable), do: queryable |> preload([:dogs])
 
   @doc """
   Returns the list of persons.
@@ -70,11 +70,11 @@ defmodule EctoMultiDemo.Persons do
 
   ## Examples
 
-      iex> create_person_and_dog_as_transaction()
+      iex> create_person_and_dogs_as_transaction()
       {:ok, %Person{}}
 
   """
-  def create_person_and_dog_as_transaction(attrs \\ %{}) do
+  def create_person_and_dogs_as_transaction(attrs \\ %{}) do
     Repo.transaction(fn ->
       with {:ok, person} <- create_person(attrs),
            # put person_id into attrs for use when creating associated records
@@ -97,11 +97,11 @@ defmodule EctoMultiDemo.Persons do
 
   ## Examples
 
-      iex> create_person_and_dog_as_multi()
+      iex> create_person_and_dogs_as_multi()
       {:ok, %Person{}}
 
   """
-  def create_person_and_dog_as_multi(attrs \\ %{}) do
+  def create_person_and_dogs_as_multi(attrs \\ %{}) do
     Multi.new()
     |> Multi.insert(:person, change_person(%Person{}, attrs))
     |> Multi.merge(fn %{person: person} ->
