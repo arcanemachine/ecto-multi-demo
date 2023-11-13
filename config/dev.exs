@@ -8,7 +8,8 @@ config :ecto_multi_demo, EctoMultiDemo.Repo,
   database: "ecto_multi_demo_dev",
   stacktrace: true,
   show_sensitive_data_on_connection_error: true,
-  pool_size: 2
+  pool_size: 2,
+  ownership_timeout: 400_000,
 
 # For development, we disable any cache and enable
 # debugging and code reloading.
@@ -19,7 +20,7 @@ config :ecto_multi_demo, EctoMultiDemo.Repo,
 config :ecto_multi_demo, EctoMultiDemoWeb.Endpoint,
   # Binding to loopback ipv4 address prevents access from other machines.
   # Change to `ip: {0, 0, 0, 0}` to allow access from other machines.
-  http: [ip: {127, 0, 0, 1}, port: 4000],
+  http: [ip: {0, 0, 0, 0}, port: 4000, protocol_options: [idle_timeout: 300_000]],
   check_origin: false,
   code_reloader: true,
   debug_errors: true,
