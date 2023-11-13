@@ -64,6 +64,33 @@ defmodule EctoMultiDemo.Persons do
   end
 
   @doc """
+  Creates a person with associated Dogs.
+
+  ## Examples
+
+      iex> create_person_and_dogs()
+      {:ok, %Person{}}
+
+  """
+  def create_person_and_dogs(attrs \\ nil) do
+    # use some defaults for attrs if none are passed in
+    attrs =
+      attrs ||
+        %{
+          "name" => "Alice",
+          "dogs" => [
+            %{"name" => "Annie"},
+            %{"name" => "Betty"}
+          ]
+        }
+
+    %Person{}
+    |> change_person(attrs)
+    |> Changeset.cast_assoc(:dogs)
+    |> Repo.insert()
+  end
+
+  @doc """
   Creates a person with an associated Dog in a single database transaction.
 
   Uses `Repo.transaction/0` to ensure that all objects are created in a single transaction.
